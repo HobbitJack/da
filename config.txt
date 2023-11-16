@@ -18,4 +18,4 @@
 "NLOG" || (2, lambda arguments : mpmath.ln(arguments[0]) / mpmath.ln(arguments[1]), "NLOG(X, BASE) -- Returns the base-BASE logarithm of X")
 "DEGRAD" || (1, lambda arguments : arguments[0] * mpmath.pi / 180, "RAD(X) -- Returns X degrees converted to radians") 
 "RADDEG" || (1, lambda arguments : arguments[0] * 180 / mpmath.pi, "RAD(X) -- Returns X radians converted to degrees")
- 
+"IF" || (3, lambda arguments : arguments[1] if arguments[0] else arguments[2], "IF(EXPR, TRUE, FALSE) -- Returns TRUE if EXPR is true, otherwise returns FALSE") 

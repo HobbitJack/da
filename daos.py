@@ -17,18 +17,30 @@ class DAOS:
             "*": 2,
             "/": 2,
             "^": 2,
+            ">": 2,
+            "<": 2,
+            "<=": 2,
+            ">=": 2,
+            "==": 2,
+            "!": 1,
             "NEG": 1,
             "_": 1,
-            "I": 1
+            "*i": 1
         }
         self.operation_priorities = {
-            "=": 5,
-            "(": 5,
+            "=": 6,
+            "(": 6,
+            "!": 6,
+            ">": 5,
+            "<": 5,
+            "<=": 5,
+            ">=": 5,
+            "==": 5,
             "+": 4,
             "-": 4,
             "*": 3,
             "/": 3,
-            "I": 3,
+            "*i": 3,
             "NEG": 1,
             "_": 3,
             "^": 2,
@@ -45,6 +57,24 @@ class DAOS:
         if operation == "_" or operation == "NEG":
             return -1 * arguments[0]
 
+        elif operation == "!":
+            return (not arguments[0])
+
+        elif operation == ">":
+            return (arguments[0] > arguments[1])
+        
+        elif operation == "<":
+            return (arguments[0] < arguments[1])
+
+        elif operation == ">=":
+            return (arguments[0] >= arguments[1])
+        
+        elif operation == "<=":
+            return (arguments[0] <= arguments[1])
+
+        elif operation == "==":
+            return (arguments[0] == arguments[1])
+
         elif operation == "+":
             return arguments[0] + arguments[1]
 
@@ -60,7 +90,7 @@ class DAOS:
         elif operation == "^":
             return arguments[0] ** arguments[1]
 
-        elif operation == "I":
+        elif operation == "*i":
             return arguments[0] * self.variables["i"]
 
         elif operation in self.functions:
@@ -89,19 +119,28 @@ class DAOS:
             if character == "i" or character == "j" or character == "I" or character == "J":
                 if self.current_item == "" or self.current_item.isnumeric() or self.current_item in self.variables:
                     if self.current_item != "":
-                        self.evaluate_current_item()
-                        self.operation_stack.append("I")
-                        self.evaluate_last_operation()
-                        self.current_item = ""
+                        character = "*i"
                     else:
-                        self.item_stack.append(self.variables["i"])
-                    continue
+                        if (index == len(expression) - 1) or (not expression[index + 1].isalnum()):
+                            self.item_stack.append(self.variables["i"])
+                            continue
                 else:
                     self.current_item += "i"
                     self.current_item = self.current_item.strip()
                     continue
 
-            elif character in self.operation_arguments:
+            if index > 0:
+                if character == "=" and (expression[index - 1] == ">" or expression[index - 1] == "<" or expression[index - 1] == "="):
+                    continue
+            
+            if character == "=" and index != len(expression)-1 and expression[index + 1] == "=":
+                character = "=="
+
+            if character == ">" or character == "<":
+                if index != len(expression)-1 and expression[index + 1] == "=":
+                    character += "="
+
+            if character in self.operation_arguments:
                 self.evaluate_current_item()
                 while (
                     len(self.operation_stack) >= 1
@@ -143,8 +182,7 @@ class DAOS:
         ]
         for _ in arguments:
             self.item_stack.pop()
-        if answer := self.evaluate_operation(arguments, self.operation_stack[-1]):
-            self.item_stack.append(answer)
+        self.item_stack.append(self.evaluate_operation(arguments, self.operation_stack[-1]))
         self.operation_stack.pop()
         return
 

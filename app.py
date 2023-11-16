@@ -317,8 +317,8 @@ def setContent():
     app.spreadsheet.cells[(1, 7)].formula = "2020"
     app.spreadsheet.cells[(1, 8)].formula = "2022"
     app.spreadsheet.cells[(8, 1)].formula = "Henlo"
-    app.spreadsheet.cells[(7, 9)].formula = "-arcsin(2)="
-    app.spreadsheet.cells[(7, 10)].formula = "=-ASIN(2)"
+    app.spreadsheet.cells[(7, 9)].formula = "If?"
+    app.spreadsheet.cells[(7, 10)].formula = "=IF(3==3,1,0)"
 
     for key in app.spreadsheet.cells[(1, 1)].cell_format.borders.keys():
         app.spreadsheet.cells[(1, 1)].cell_format.borders[key] = "True"
