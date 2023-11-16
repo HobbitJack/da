@@ -5,11 +5,17 @@
 
 #DEFAULT FUNCTIONS -- DO NOT EDIT --
 "SIN" || (1, lambda arguments : mpmath.sin(arguments[0]), "SIN(X) -- Returns sine of X, with X in radians")
+"ASIN" || (1, lambda arguments : mpmath.asin(arguments[0]), "ASIN(X) -- Returns arcsine of X, in radians")
 "COS" || (1, lambda arguments : mpmath.cos(arguments[0]), "COS(X) -- Returns cosine of X, with X in radians")
+"ACOS" || (1, lambda arguments : mpmath.acos(arguments[0]), "ACOS(X) -- Returns arccosine of X, in radians")
 "TAN" || (1, lambda arguments : mpmath.tan(arguments[0]), "TAN(X) -- Returns tangent of X, with X in radians")
+"ATAN" || (1, lambda arguments : mpmath.atan(arguments[0]), "ATAN(X) -- Returns arctangent of X, in radians")
 "SQRT" || (1, lambda arguments : mpmath.sqrt(arguments[0]), "SQRT(X) -- Returns the square root of X")
 "LN" || (1, lambda arguments : mpmath.ln(arguments[0]), "LN(X) -- Returns the natural logarithm of X")
 "EXP" || (1, lambda arguments : mpmath.exp(arguments[0]), "EXP(X) -- Returns natural antilogarithm of X")
+"LOG" || (1, lambda arguments : mpmath.ln(arguments[0]), "LOG(X) -- Returns the base-10 logarithm of X")
+"ALOG" || (1, lambda arguments : mpmath.exp(arguments[0]), "ALOG(X) -- Returns the base-10 antilogarithm of X")
+"NLOG" || (2, lambda arguments : mpmath.ln(arguments[0]) / mpmath.ln(arguments[1]), "NLOG(X, BASE) -- Returns the base-BASE logarithm of X")
 "DEGRAD" || (1, lambda arguments : arguments[0] * mpmath.pi / 180, "RAD(X) -- Returns X degrees converted to radians") 
 "RADDEG" || (1, lambda arguments : arguments[0] * 180 / mpmath.pi, "RAD(X) -- Returns X radians converted to degrees")
  

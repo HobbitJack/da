@@ -1,6 +1,7 @@
 import random
 import time
 import os
+import typing
 
 import mpmath
 from spreadsheet import Spreadsheet
@@ -17,12 +18,17 @@ class App:
         self.current_cell = (2, 5)
         self.context = "Nav"
 
-    def read_functions(self) -> dict[str, tuple[int, callable, str]]:
+    def read_functions(self) -> dict[str, tuple[int, typing.Callable, str]]:
         functions = {}
+        modules = []
         with open("config.txt", encoding="UTF-8") as file:
             for line in file:
-                if line.startswith("\""):
-                    functions[line.split(" || ")[0].strip("\"")] = eval(line.split(" || ")[1])
+                if line.startswith("- "):
+                    modules.append(line.strip("- "))
+                if line.startswith('"'):
+                    functions[line.split(" || ")[0].strip('"')] = eval(
+                        line.split(" || ")[1]
+                    )
         return functions
 
     # Function
@@ -249,10 +255,23 @@ class App:
         cell_height = cell.height
         total_characters = cell_width * cell_height
 
-        if not isinstance(cell.value, str):
+        if isinstance(cell.value, mpmath.mpf) or isinstance(cell.value, int):
             value_string = (
                 f"{' ' * (total_characters - len(str(cell.value)))}{cell.value}"
             )
+        elif isinstance(cell.value, mpmath.mpc):
+            if mpmath.re(cell.value) == 0:
+                if total_characters >= len(f"{str(mpmath.im(cell.value))}i"):
+                    value_string = f"{' ' * (total_characters - 1 - len(str(mpmath.im(cell.value))))}{mpmath.im(cell.value)}i"
+                else:
+                    value_string = f"{' ' * (1 if total_characters % 2 == 1 else 0)}{'' if mpmath.im(cell.value) >= 0 else '-'}{str(abs(mpmath.im(cell.value)))[0:(total_characters - (1 if mpmath.im(cell.value) >= 0 else 2))]}i"
+            else:
+                if total_characters >= len(str(cell.value)):
+                    value_string = (
+                        f"{' ' * (total_characters - len(str(cell.value)))}{cell.value}"
+                    )
+                else:
+                    value_string = f"{' ' * (1 if total_characters % 2 == 1 and mpmath.re(cell.value) > 0 else 0)}{str(mpmath.re(cell.value))[0:(total_characters-2)//2 + (1 if mpmath.re(cell.value) < 0 else 0)]}{'+' if mpmath.im(cell.value) >= 0 else '-'}{str(abs(mpmath.im(cell.value)))[0:(total_characters-2)//2]}i"
         else:
             value_string = str(cell.value)
 
@@ -298,17 +317,18 @@ def setContent():
     app.spreadsheet.cells[(1, 7)].formula = "2020"
     app.spreadsheet.cells[(1, 8)].formula = "2022"
     app.spreadsheet.cells[(8, 1)].formula = "Henlo"
-    app.spreadsheet.cells[(7, 9)].formula = "'=2+sin(3)"
-    app.spreadsheet.cells[(7, 10)].formula = "=2+SIN(3)"
+    app.spreadsheet.cells[(7, 9)].formula = "-arcsin(2)="
+    app.spreadsheet.cells[(7, 10)].formula = "=-ASIN(2)"
 
     for key in app.spreadsheet.cells[(1, 1)].cell_format.borders.keys():
         app.spreadsheet.cells[(1, 1)].cell_format.borders[key] = "True"
 
-    app.spreadsheet.rows[1].height = 1
+    app.spreadsheet.columns[7].width = 11
 
     app.spreadsheet.merge_cells(
         app.spreadsheet.cells[(1, 1)], app.spreadsheet.generate_1D_cell_range((1, 1), 6)
     )
+
 
 if __name__ == "__main__":
     app = App()

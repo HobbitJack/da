@@ -9,7 +9,12 @@ from cell import Cell
 
 class Spreadsheet:
     # Procedure
-    def __init__(self, total_rows: int, total_columns: int, functions: dict[str, tuple[int, callable, str]]) -> None:
+    def __init__(
+        self,
+        total_rows: int,
+        total_columns: int,
+        functions: dict[str, tuple[int, callable, str]],
+    ) -> None:
         self.cells = {
             (column, row): Cell(column, row)
             for row in range(total_rows)
@@ -28,7 +33,7 @@ class Spreadsheet:
             cell.value = cell.master.value
             return
 
-        if cell.formula.startswith("'") or cell.formula.startswith("\""):
+        if cell.formula.startswith("'") or cell.formula.startswith('"'):
             cell.value = cell.formula[1:]
             return
 
@@ -37,22 +42,32 @@ class Spreadsheet:
                 cell.value = int(cell.formula)
                 return
             except ValueError:
-                try: 
+                try:
                     cell.value = mpmath.mpf(cell.formula)
                     return
                 except ValueError:
                     cell.value = cell.formula
                     return
-        
+
         else:
             try:
                 self.daos_instance.evaluate_expression(cell.formula)
-                if (int(self.daos_instance.item_stack[-1]) == self.daos_instance.item_stack[-1]):
+                cell.value = self.daos_instance.item_stack[-1]
+
+                if (
+                    isinstance(cell.value, mpmath.mpc)
+                    and mpmath.re(cell.value) != 0
+                    and mpmath.im(cell.value) == 0
+                ):
+                    cell.value = mpmath.re(cell.value)
+
+                if isinstance(cell.value, mpmath.mpf) and (
+                    int(cell.value) == cell.value
+                ):
                     cell.value = int(self.daos_instance.item_stack[-1])
-                else:
-                    cell.value = self.daos_instance.item_stack[-1]
+
             except (KeyError, ArithmeticError, IndexError, ValueError) as e:
-                cell.value = "##ERROR"  
+                cell.value = "##ERROR"
 
     # Function
     def generate_1D_cell_range(
