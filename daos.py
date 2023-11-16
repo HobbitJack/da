@@ -9,7 +9,7 @@ class DAOS:
         self.item_stack: typing.Any = []
         self.current_item = ""
 
-        self.variables = {"E": mpmath.e, "PI": mpmath.pi}
+        self.variables = {"E": mpmath.e, "PI": mpmath.pi, "i": mpmath.mpc("0","1")}
         self.operation_arguments = {
             "=": 0,
             "+": 2,
@@ -19,6 +19,7 @@ class DAOS:
             "^": 2,
             "NEG": 1,
             "_": 1,
+            "I": 1
         }
         self.operation_priorities = {
             "=": 5,
@@ -27,6 +28,7 @@ class DAOS:
             "-": 4,
             "*": 3,
             "/": 3,
+            "I": 3,
             "NEG": 1,
             "_": 3,
             "^": 2,
@@ -58,6 +60,9 @@ class DAOS:
         elif operation == "^":
             return arguments[0] ** arguments[1]
 
+        elif operation == "I":
+            return arguments[0] * self.variables["i"]
+
         elif operation in self.functions:
             return self.functions[operation](arguments)
 
@@ -81,7 +86,22 @@ class DAOS:
                     self.operation_stack.append("NEG")
                     continue
 
-            if character in self.operation_arguments:
+            if character == "i" or character == "j" or character == "I" or character == "J":
+                if self.current_item == "" or self.current_item.isnumeric() or self.current_item in self.variables:
+                    if self.current_item != "":
+                        self.evaluate_current_item()
+                        self.operation_stack.append("I")
+                        self.evaluate_last_operation()
+                        self.current_item = ""
+                    else:
+                        self.item_stack.append(self.variables["i"])
+                    continue
+                else:
+                    self.current_item += "i"
+                    self.current_item = self.current_item.strip()
+                    continue
+
+            elif character in self.operation_arguments:
                 self.evaluate_current_item()
                 while (
                     len(self.operation_stack) >= 1
@@ -108,6 +128,7 @@ class DAOS:
             else:
                 self.current_item += character
                 self.current_item = self.current_item.strip()
+
         return
 
     # Procedure
@@ -146,6 +167,7 @@ if __name__ == "__main__":
     daos_instance = DAOS(
         {
             "SIN": (1, lambda arguments: mpmath.sin(arguments[0]), ""),
+            "ASIN": (1, lambda arguments: mpmath.asin(arguments[0]), ""),
             "COS": (1, lambda arguments: mpmath.cos(arguments[0]), ""),
             "TAN": (1, lambda arguments: mpmath.tan(arguments[0]), ""),
             "SQRT": (1, lambda arguments: mpmath.sqrt(arguments[0]), ""),
