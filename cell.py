@@ -35,3 +35,18 @@ class Cell:
     def __str__(self, use_long: bool = False):
         if not use_long:
             return f"{self.columnLetter()}{self.position[1] + 1}"
+    
+    #Function
+    @staticmethod
+    def parse_pos_from_str(parsestring: str) -> tuple[int, int]:
+        parsestring = parsestring.upper()
+        column_letter = ""
+        row_number = ""
+        char_index = 0
+        while parsestring[char_index] in string.ascii_uppercase:
+            column_letter += parsestring[char_index]
+
+        column_number = 0
+        for index, character in enumerate(column_letter):
+            column_number += (len(column_letter) - index) * string.ascii_uppercase.index(character)
+        return tuple[column_number + 1, row_number]
