@@ -2,6 +2,7 @@ import random
 import time
 import os
 import typing
+import sys
 
 import mpmath
 from spreadsheet import Spreadsheet
@@ -17,6 +18,39 @@ class App:
         self.top_left_cell = (0, 0)
         self.current_cell = (2, 5)
         self.context = "Nav"
+        self.saved: str = ""
+        self.exit = False
+
+    def get_next_keypress(self) -> list[bytes] | str:
+        try:
+            import msvcrt
+            try:
+                self.os = "Windows"
+                bytes = []
+                while True:
+                    if msvcrt.kbhit():
+                        keypress = msvcrt.getch()
+                        if keypress == b'\x04':
+                            print("^D -- Exiting da")
+                            if not self.saved:
+                                filepath = input("Save filepath\n> ")
+                                if filepath:
+                                    self.save_file(filepath)
+                            return "^D"
+                        bytes.append(keypress)
+                    else:
+                        return bytes
+            except KeyboardInterrupt:
+                return "^C"
+               
+        except ImportError:
+            print("Unix is not supported presently. Sorry!")
+            self.os = "Nix"
+            exit()
+
+    # Procedure
+    def save_file(filepath) -> None:
+        return
 
     def read_functions(self) -> dict[str, tuple[int, typing.Callable, str]]:
         functions = {}
@@ -67,7 +101,7 @@ class App:
 
     # Procedure
     def display_UI(self) -> None:
-        display_string = "\n\n   |"
+        display_string = f"\n{app.spreadsheet.cells[app.current_cell]}|{app.spreadsheet.cells[app.current_cell].master.formula}\n   |"
         display_string += self.generate_spreadsheet()
         display_string += self.generate_shortcut_bar()
         print(display_string, end="", sep="")
@@ -248,32 +282,37 @@ class App:
 
     # Procedure
     def generate_cell_content(self, cell: Cell) -> None:
-        if cell.master is not cell:
-            return
         self.spreadsheet.set_cell_size(cell)
         cell_width = cell.width
         cell_height = cell.height
         total_characters = cell_width * cell_height
+        
+        if cell.master is not cell and cell.position != app.current_cell:
+            return
 
-        if isinstance(cell.value, mpmath.mpf) or isinstance(cell.value, int):
-            value_string = (
-                f"{' ' * (total_characters - len(str(cell.value)))}{cell.value}"
-            )
-        elif isinstance(cell.value, mpmath.mpc):
-            if mpmath.re(cell.value) == 0:
-                if total_characters >= len(f"{str(mpmath.im(cell.value))}i"):
-                    value_string = f"{' ' * (total_characters - 1 - len(str(mpmath.im(cell.value))))}{mpmath.im(cell.value)}i"
+        if cell.position != app.current_cell:
+            if isinstance(cell.value, mpmath.mpf) or isinstance(cell.value, int):
+                value_string = (
+                    f"{' ' * (total_characters - len(str(cell.value)))}{cell.value}"
+                )
+            elif isinstance(cell.value, mpmath.mpc):
+                if mpmath.re(cell.value) == 0:
+                    if total_characters >= len(f"{str(mpmath.im(cell.value))}i"):
+                        value_string = f"{' ' * (total_characters - 1 - len(str(mpmath.im(cell.value))))}{mpmath.im(cell.value)}i"
+                    else:
+                        value_string = f"{' ' * (1 if total_characters % 2 == 1 else 0)}{'' if mpmath.im(cell.value) >= 0 else '-'}{str(abs(mpmath.im(cell.value)))[0:(total_characters - (1 if mpmath.im(cell.value) >= 0 else 2))]}i"
                 else:
-                    value_string = f"{' ' * (1 if total_characters % 2 == 1 else 0)}{'' if mpmath.im(cell.value) >= 0 else '-'}{str(abs(mpmath.im(cell.value)))[0:(total_characters - (1 if mpmath.im(cell.value) >= 0 else 2))]}i"
+                    if total_characters >= len(str(cell.value)):
+                        value_string = (
+                            f"{' ' * (total_characters - len(str(cell.value)))}{cell.value}"
+                        )
+                    else:
+                        total_characters = cell.master.height * cell.master.width
+                        value_string = f"{' ' * (1 if total_characters % 2 == 1 and mpmath.re(cell.value) > 0 else 0)}{str(mpmath.re(cell.value))[0:(total_characters-2)//2 + (1 if mpmath.re(cell.value) < 0 else 0)]}{'+' if mpmath.im(cell.value) >= 0 else '-'}{str(abs(mpmath.im(cell.value)))[0:(total_characters-2)//2]}i"
             else:
-                if total_characters >= len(str(cell.value)):
-                    value_string = (
-                        f"{' ' * (total_characters - len(str(cell.value)))}{cell.value}"
-                    )
-                else:
-                    value_string = f"{' ' * (1 if total_characters % 2 == 1 and mpmath.re(cell.value) > 0 else 0)}{str(mpmath.re(cell.value))[0:(total_characters-2)//2 + (1 if mpmath.re(cell.value) < 0 else 0)]}{'+' if mpmath.im(cell.value) >= 0 else '-'}{str(abs(mpmath.im(cell.value)))[0:(total_characters-2)//2]}i"
+                value_string = str(cell.value)
         else:
-            value_string = str(cell.value)
+            value_string = "/" * total_characters
 
         cell_text_rows = ["" for i in range(cell_height)]
 
@@ -299,7 +338,7 @@ class App:
             ]
             return
 
-        cell.content = cell_text_rows
+        cell.master.content = cell_text_rows
 
 
 def setContent():
@@ -332,16 +371,51 @@ def setContent():
 
 if __name__ == "__main__":
     app = App()
-    i = 1
-    while i:
-        # app.spreadsheet.columns[random.randint(1,26)].width=random.randint(1,20)
-        # app.spreadsheet.rows[random.randint(1,30)].height=random.randint(1,4)
-        setContent()
+    setContent()
+    app.display_UI()
+    while True:
+        while True:
+            keypress: str | bytes = app.get_next_keypress()
+            if keypress == "^D":
+                app.exit = True
+                break
+            if not keypress:
+                continue
+            
+            if keypress[0] == b'\xe0':
+                command = keypress[1]
 
+                #Down
+                if command == b'P':
+                    app.current_cell = (app.current_cell[0], app.current_cell[1] + (1 if app.current_cell[1] < len(app.spreadsheet.columns) else 0))
+                    app.top_left_cell = (app.top_left_cell[0], app.top_left_cell[1] + (1 if app.current_cell[1] > app.top_left_cell[1] else 0))
+                #Right
+                elif command == b'M':
+                    app.current_cell = (app.current_cell[0] + (1 if app.current_cell[0] < len(app.spreadsheet.rows) else 0), app.current_cell[1])
+                    app.top_left_cell = (app.top_left_cell[0] + (1 if app.current_cell[0] > app.top_left_cell[0] else 0), app.top_left_cell[1])
+                #Left
+                elif command == b'K':
+                    app.current_cell = (app.current_cell[0] - (1 if app.current_cell[0] > 0 else 0), app.current_cell[1])
+                    app.top_left_cell = (app.top_left_cell[0] - (1 if app.current_cell[0] < app.top_left_cell[0] else 0), app.top_left_cell[1])
+                #Up
+                elif command == b'H':
+                    app.current_cell = (app.current_cell[0], app.current_cell[1] - (1 if app.current_cell[1] > 0 else 0))
+                    app.top_left_cell = (app.top_left_cell[0], app.top_left_cell[1] - (1 if app.current_cell[1] < app.top_left_cell[1] else 0))
+
+                elif command == b'S':
+                    app.spreadsheet.cells[app.current_cell].formula = ""
+
+                break
+
+            if keypress[0] == b"\r":
+                app.spreadsheet.cells[app.current_cell].master.formula = input(f"{app.spreadsheet.cells[app.current_cell]}|")
+                app.current_cell = (app.current_cell[0], app.current_cell[1] + (1 if app.current_cell[1] < len(app.spreadsheet.columns) else 0))
+                break
+
+        if app.exit:
+            break
+        
         app.display_UI()
-        time.sleep(1)
-        # os.system("clear")
-        i -= 1
 
 test = """
 E3|=C3-BCorr(D3|

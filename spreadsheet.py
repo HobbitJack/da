@@ -51,6 +51,7 @@ class Spreadsheet:
 
         else:
             try:
+                self.daos_instance.reinit()
                 self.daos_instance.evaluate_expression(cell.formula)
                 cell.value = self.daos_instance.item_stack[-1]
 
@@ -68,6 +69,7 @@ class Spreadsheet:
 
             except (KeyError, ArithmeticError, IndexError, ValueError) as e:
                 cell.value = "##ERROR"
+
 
     # Function
     def generate_1D_cell_range(
