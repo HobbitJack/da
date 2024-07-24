@@ -20,17 +20,16 @@ class Cell:
 
     # Function
     def columnLetter(self):
-        column_number = self.position[0]
-        if column_number == 0:
-            return "A"
+        column_number = self.position[0] + 1
         digits = []
-        while column_number:
-            digits.append(int(column_number % 27))
+        while column_number > 0:
+            digits.append(int(column_number % 26))
             column_number //= 27
         return "".join(
-            (string.ascii_uppercase[number_letter] for number_letter in digits)
+            string.ascii_uppercase[number_letter - 1]
+            for number_letter in reversed(digits)
         )
-
+        
     # Function
     def __str__(self, use_long: bool = False):
         if not use_long:
