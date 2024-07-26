@@ -14,7 +14,7 @@ class App:
     # Function
     def __init__(self):
         self.functions = self.read_functions()
-        self.spreadsheet = Spreadsheet(100, 100, self.functions)
+        self.spreadsheet = Spreadsheet(30, 30, self.functions)
         #               (column, row)
         self.top_left_cell = (0, 0)
         self.current_cell = (2, 5)
@@ -58,6 +58,8 @@ class App:
                 display_cell_rows += 1
             else:
                 break
+            if display_cell_rows > len(self.spreadsheet.rows) - 1:
+                display_cell_rows = len(self.spreadsheet.rows) - 1
         return display_cell_rows
 
     # Function
@@ -75,6 +77,8 @@ class App:
                 display_cell_columns += 1
             else:
                 break
+        if display_cell_columns > len(self.spreadsheet.columns) - 1:
+                display_cell_columns = len(self.spreadsheet.columns) - 1
         return display_cell_columns
 
     # Procedure
@@ -98,7 +102,7 @@ class App:
 
     # Function
     def generate_spreadsheet(self) -> str:
-        spreadsheet_string = f"{self.context}|"
+        spreadsheet_string = f"{self.context.upper()}|"
         display_cell_columns = self.get_display_cell_columns()
         display_cell_rows = self.get_display_cell_rows()
 
@@ -372,10 +376,7 @@ def setContent():
 
     for key in app.spreadsheet.cells[(1, 1)].cell_format.borders.keys():
         app.spreadsheet.cells[(1, 1)].cell_format.borders[key] = "True"
-
-    for key in app.spreadsheet.cells[(4, 24)].cell_format.borders.keys():
-        app.spreadsheet.cells[(4, 24)].cell_format.borders[key] = "True"
-
+        
     app.spreadsheet.columns[7].width = 11
 
     app.spreadsheet.merge_cells(
@@ -439,7 +440,13 @@ if __name__ == "__main__":
                             app.minibuffer = app.minibuffer[:app.minibuffer_insert - 1] + app.minibuffer[app.minibuffer_insert:]  
                             app.minibuffer_insert -= 1
                             break
-                            
+
+                elif keypress == b'\x07':
+                    if app.context == "Edt":
+                        app.context = "Nav"
+                        app.minibuffer = ""
+                        break
+                        
                 elif keypress == b'\x04':
                     app.leave = True
                     break
@@ -451,7 +458,25 @@ if __name__ == "__main__":
                 
                 if app.command_key:
                     app.meta_key = False
-                    app.arrow_key = False
+                    app.command_key = False
+
+                    if keypress == b'3':
+                            keypress = getch().encode()
+
+                            if keypress == b'~':
+                                if app.context == "Nav":
+                                    app.spreadsheet.cells[app.current_cell].formula = ""
+                                    break
+                                elif app.context == "Edt":
+                                    if app.minibuffer_insert == len(app.minibuffer):
+                                        pass
+                                    elif app.minibuffer_insert == len(app.minibuffer) - 1:
+                                        app.minibuffer = app.minibuffer[0:-1]
+                                        break
+                                    else:
+                                        app.minibuffer = app.minibuffer[:app.minibuffer_insert] + app.minibuffer[app.minibuffer_insert + 1:]
+                                        break
+                                        
                     if app.context == "Nav":
                         if keypress == b'A':
                             #Up
