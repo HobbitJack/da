@@ -10,6 +10,7 @@
 "ACOS" || (1, lambda arguments : mpmath.acos(arguments[0]), "ACOS(X) -- Returns arccosine of X, in radians")
 "TAN" || (1, lambda arguments : mpmath.tan(arguments[0]), "TAN(X) -- Returns tangent of X, with X in radians")
 "ATAN" || (1, lambda arguments : mpmath.atan(arguments[0]), "ATAN(X) -- Returns arctangent of X, in radians")
+"ABS" || (1, lambda arguments : mpmath.fabs(arguments[0]), "ABS(X) -- Returns absolute value of X")
 "SQRT" || (1, lambda arguments : mpmath.sqrt(arguments[0]), "SQRT(X) -- Returns the square root of X")
 "LN" || (1, lambda arguments : mpmath.ln(arguments[0]), "LN(X) -- Returns the natural logarithm of X")
 "EXP" || (1, lambda arguments : mpmath.exp(arguments[0]), "EXP(X) -- Returns natural antilogarithm of X")

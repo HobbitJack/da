@@ -1,8 +1,7 @@
-import random
-import time
+#!/usr/bin/python
+
 import os
 import typing
-import sys
 import string
 import mpmath
 from keypress import getch
@@ -25,7 +24,7 @@ class App:
         self.meta_key = False
         self.arrow_key = False
         self.leave = False
-            
+
     # Procedure
     def save_file(filepath) -> None:
         return
@@ -78,7 +77,7 @@ class App:
             else:
                 break
         if display_cell_columns > len(self.spreadsheet.columns) - 1:
-                display_cell_columns = len(self.spreadsheet.columns) - 1
+            display_cell_columns = len(self.spreadsheet.columns) - 1
         return display_cell_columns
 
     # Procedure
@@ -150,7 +149,9 @@ class App:
             ):
                 self.spreadsheet.evaluate_cell(cell)
                 self.generate_cell_content(cell)
-                if cell.master == cell or not self.get_cell_is_on_screen(cell.master.position):
+                if cell.master == cell or not self.get_cell_is_on_screen(
+                    cell.master.position
+                ):
                     row_text += cell.content[cell_text_row]
                 row_text += self.get_horizontal_cell_boundary(
                     text_column + 1, row_number
@@ -166,8 +167,6 @@ class App:
         current_cell = self.spreadsheet.cells[columns, row_number]
         previous_cell = self.spreadsheet.get_adjacent_cell(current_cell, "left")
 
-        
-        
         if previous_cell:
             if current_cell in previous_cell.master.slaves:
                 if self.get_cell_is_on_screen(current_cell.master.position):
@@ -247,7 +246,7 @@ class App:
                 "Up/Down: Go to start/end of formula",
                 "Ret: Save Cell",
             ]
-            
+
         main_shortcuts = [
             "C-d: Exit",
             "C-s: Save",
@@ -288,8 +287,11 @@ class App:
         cell_width = cell.width
         cell_height = cell.height
         total_characters = cell_width * cell_height
-        
-        if cell.position != self.current_cell and self.spreadsheet.cells[self.current_cell] not in cell.slaves:
+
+        if (
+            cell.position != self.current_cell
+            and self.spreadsheet.cells[self.current_cell] not in cell.slaves
+        ):
             if cell.master is not cell:
                 if self.get_cell_is_on_screen(cell.master.position):
                     return
@@ -307,9 +309,7 @@ class App:
                         value_string = f"{' ' * (1 if total_characters % 2 == 1 else 0)}{'' if mpmath.im(cell.value) >= 0 else '-'}{str(abs(mpmath.im(cell.value)))[0:(total_characters - (1 if mpmath.im(cell.value) >= 0 else 2))]}i"
                 else:
                     if total_characters >= len(str(cell.value)):
-                        value_string = (
-                            f"{' ' * (total_characters - len(str(cell.value)))}{cell.value}"
-                        )
+                        value_string = f"{' ' * (total_characters - len(str(cell.value)))}{cell.value}"
                     else:
                         total_characters = cell.master.height * cell.master.width
                         value_string = f"{' ' * (1 if total_characters % 2 == 1 and mpmath.re(cell.value) > 0 else 0)}{str(mpmath.re(cell.value))[0:(total_characters-2)//2 + (1 if mpmath.re(cell.value) < 0 else 0)]}{'+' if mpmath.im(cell.value) >= 0 else '-'}{str(abs(mpmath.im(cell.value)))[0:(total_characters-2)//2]}i"
@@ -335,9 +335,11 @@ class App:
         # Text Centering
         if isinstance(cell.value, str):
             cell.content = [
-                f"{' ' * ((cell_width - len(row.strip())) // 2 + ((cell_width - len(row.strip())) % 2))}{row.strip()}{' ' * ((cell_width - len(row.strip())) // 2)}"
-                if len(cell.value) <= cell_width
-                else row
+                (
+                    f"{' ' * ((cell_width - len(row.strip())) // 2 + ((cell_width - len(row.strip())) % 2))}{row.strip()}{' ' * ((cell_width - len(row.strip())) // 2)}"
+                    if len(cell.value) <= cell_width
+                    else row
+                )
                 for row in cell_text_rows
             ]
             return
@@ -346,16 +348,25 @@ class App:
 
     # Function
     def get_cell_is_on_screen(self, cell_position: tuple[int, int]) -> bool:
-        return cell_position[0] >= app.top_left_cell[0] and cell_position[0] < app.top_left_cell[0] + app.get_display_cell_columns() and cell_position[1] >= app.top_left_cell[1] and cell_position[1] < app.top_left_cell[1] + app.get_display_cell_rows()
-        
+        return (
+            cell_position[0] >= app.top_left_cell[0]
+            and cell_position[0] < app.top_left_cell[0] + app.get_display_cell_columns()
+            and cell_position[1] >= app.top_left_cell[1]
+            and cell_position[1] < app.top_left_cell[1] + app.get_display_cell_rows()
+        )
+
     # Function
     def display_minibuffer(self) -> str:
         if self.context == "Nav":
             return f"{self.spreadsheet.cells[self.current_cell]}:{self.spreadsheet.cells[self.current_cell].master.formula}"
         elif self.context == "Edt":
             # H|ello -> minibuffer_insert = 1
-            return "\x1b[1K\r" + f"{self.spreadsheet.cells[self.current_cell]}:{self.minibuffer[:self.minibuffer_insert]}|{self.minibuffer[self.minibuffer_insert:]}"
-        
+            return (
+                "\x1b[1K\r"
+                + f"{self.spreadsheet.cells[self.current_cell]}:{self.minibuffer[:self.minibuffer_insert]}|{self.minibuffer[self.minibuffer_insert:]}"
+            )
+
+
 def setContent():
     app.spreadsheet.cells[(1, 1)].formula = "Quicklook Data"
     app.spreadsheet.cells[(1, 2)].formula = "Year"
@@ -376,7 +387,7 @@ def setContent():
 
     for key in app.spreadsheet.cells[(1, 1)].cell_format.borders.keys():
         app.spreadsheet.cells[(1, 1)].cell_format.borders[key] = "True"
-        
+
     app.spreadsheet.columns[7].width = 11
 
     app.spreadsheet.merge_cells(
@@ -388,162 +399,233 @@ if __name__ == "__main__":
     app = App()
     setContent()
     app.display_UI()
-   
+
     # Main App Loop
     while True:
-        #Input loop
+        # Input loop
         while True:
             keypress = getch().encode()
-            
-            if keypress == b'\x1b':
+
+            if keypress == b"\x1b":
                 app.meta_key = True
                 continue
-        
+
             if not app.meta_key:
                 app.meta_key = False
                 app.command_key = False
-                #Keypress Decision Tree
-       
-                if keypress == b'\r':
+                # Keypress Decision Tree
+
+                if keypress == b"\r":
                     if app.context == "Nav":
                         app.context = "Edt"
-                        app.minibuffer = app.spreadsheet.cells[app.current_cell].master.formula
+                        app.minibuffer = app.spreadsheet.cells[
+                            app.current_cell
+                        ].master.formula
                         app.minibuffer_insert = len(app.minibuffer)
                         app.display_UI(True)
                         continue
                     elif app.context == "Edt":
-                        app.spreadsheet.cells[app.current_cell].master.formula = app.minibuffer
+                        app.spreadsheet.cells[app.current_cell].master.formula = (
+                            app.minibuffer
+                        )
                         app.minibuffer = ""
                         app.context = "Nav"
                     break
-                
+
                 if keypress.decode() in string.printable:
                     if app.context == "Nav":
                         app.context = "Edt"
-                        app.minibuffer = app.spreadsheet.cells[app.current_cell].master.formula + keypress.decode()
+                        app.minibuffer = (
+                            app.spreadsheet.cells[app.current_cell].master.formula
+                            + keypress.decode()
+                        )
                         app.minibuffer_insert = len(app.minibuffer)
                         app.display_UI(True)
                     elif app.context == "Edt":
-                        app.minibuffer = app.minibuffer[:app.minibuffer_insert] + keypress.decode() + app.minibuffer[app.minibuffer_insert:]
+                        app.minibuffer = (
+                            app.minibuffer[: app.minibuffer_insert]
+                            + keypress.decode()
+                            + app.minibuffer[app.minibuffer_insert :]
+                        )
                         app.minibuffer_insert += 1
                     break
 
-                elif keypress == b'\x7f':
+                elif keypress == b"\x7f":
                     if app.context == "Nav":
-                        if len(app.spreadsheet.cells[app.current_cell].master.formula) > 0:
+                        if (
+                            len(app.spreadsheet.cells[app.current_cell].master.formula)
+                            > 0
+                        ):
                             app.context = "Edt"
-                            app.minibuffer = app.spreadsheet.cells[app.current_cell].master.formula[0:]
+                            app.minibuffer = app.spreadsheet.cells[
+                                app.current_cell
+                            ].master.formula[0:]
                             app.minibuffer_insert = len(app.minibuffer)
                             app.display_UI(True)
                     if app.context == "Edt":
                         if len(app.minibuffer) > 0 and app.minibuffer_insert != 0:
-                            app.minibuffer = app.minibuffer[:app.minibuffer_insert - 1] + app.minibuffer[app.minibuffer_insert:]  
+                            app.minibuffer = (
+                                app.minibuffer[: app.minibuffer_insert - 1]
+                                + app.minibuffer[app.minibuffer_insert :]
+                            )
                             app.minibuffer_insert -= 1
                             break
 
-                elif keypress == b'\x07':
+                elif keypress == b"\x07":
                     if app.context == "Edt":
                         app.context = "Nav"
                         app.minibuffer = ""
                         break
-                        
-                elif keypress == b'\x04':
+
+                elif keypress == b"\x04":
                     app.leave = True
                     break
-                   
+
             else:
-                if keypress == b'[':
+                if keypress == b"[":
                     app.command_key = True
                     continue
-                
+
                 if app.command_key:
                     app.meta_key = False
                     app.command_key = False
 
-                    if keypress == b'3':
-                            keypress = getch().encode()
+                    if keypress == b"3":
+                        keypress = getch().encode()
 
-                            if keypress == b'~':
-                                if app.context == "Nav":
-                                    app.spreadsheet.cells[app.current_cell].formula = ""
+                        if keypress == b"~":
+                            if app.context == "Nav":
+                                app.spreadsheet.cells[app.current_cell].formula = ""
+                                break
+                            elif app.context == "Edt":
+                                if app.minibuffer_insert == len(app.minibuffer):
+                                    pass
+                                elif app.minibuffer_insert == len(app.minibuffer) - 1:
+                                    app.minibuffer = app.minibuffer[0:-1]
                                     break
-                                elif app.context == "Edt":
-                                    if app.minibuffer_insert == len(app.minibuffer):
-                                        pass
-                                    elif app.minibuffer_insert == len(app.minibuffer) - 1:
-                                        app.minibuffer = app.minibuffer[0:-1]
-                                        break
-                                    else:
-                                        app.minibuffer = app.minibuffer[:app.minibuffer_insert] + app.minibuffer[app.minibuffer_insert + 1:]
-                                        break
-                                        
+                                else:
+                                    app.minibuffer = (
+                                        app.minibuffer[: app.minibuffer_insert]
+                                        + app.minibuffer[app.minibuffer_insert + 1 :]
+                                    )
+                                    break
+
                     if app.context == "Nav":
-                        if keypress == b'A':
-                            #Up
+                        if keypress == b"A":
+                            # Up
                             if app.current_cell[1] == 0:
                                 continue
                             else:
-                                app.current_cell = (app.current_cell[0], app.spreadsheet.cells[app.current_cell].master.position[1] - 1)    
+                                app.current_cell = (
+                                    app.current_cell[0],
+                                    app.spreadsheet.cells[
+                                        app.current_cell
+                                    ].master.position[1]
+                                    - 1,
+                                )
                                 if app.current_cell[1] < app.top_left_cell[1]:
-                                    app.top_left_cell = (app.top_left_cell[0], app.top_left_cell[1] - 1)        
+                                    app.top_left_cell = (
+                                        app.top_left_cell[0],
+                                        app.top_left_cell[1] - 1,
+                                    )
                                 break
-                        elif keypress == b'B':
-                            #Down
+                        elif keypress == b"B":
+                            # Down
                             if app.current_cell[1] == len(app.spreadsheet.rows) - 2:
                                 continue
                             else:
-                                app.current_cell = (app.current_cell[0], app.spreadsheet.cells[app.current_cell].master.position[1] + 1)    
-                                if app.current_cell[1] >= app.top_left_cell[1] + app.get_display_cell_rows():
-                                    app.top_left_cell = (app.top_left_cell[0], app.top_left_cell[1] + 1)        
+                                app.current_cell = (
+                                    app.current_cell[0],
+                                    app.spreadsheet.cells[
+                                        app.current_cell
+                                    ].master.position[1]
+                                    + 1,
+                                )
+                                if (
+                                    app.current_cell[1]
+                                    >= app.top_left_cell[1]
+                                    + app.get_display_cell_rows()
+                                ):
+                                    app.top_left_cell = (
+                                        app.top_left_cell[0],
+                                        app.top_left_cell[1] + 1,
+                                    )
                                 break
-                        elif keypress == b'C':
-                            #Right
+                        elif keypress == b"C":
+                            # Right
                             if app.current_cell[0] == len(app.spreadsheet.columns) - 2:
                                 continue
                             else:
-                                app.current_cell = (app.spreadsheet.cells[app.current_cell].master.position[0] + 1, app.current_cell[1])    
-                                if app.current_cell[0] >= app.top_left_cell[0] + app.get_display_cell_columns():
-                                    app.top_left_cell = (app.top_left_cell[0] + 1, app.top_left_cell[1])
+                                app.current_cell = (
+                                    app.spreadsheet.cells[
+                                        app.current_cell
+                                    ].master.position[0]
+                                    + 1,
+                                    app.current_cell[1],
+                                )
+                                if (
+                                    app.current_cell[0]
+                                    >= app.top_left_cell[0]
+                                    + app.get_display_cell_columns()
+                                ):
+                                    app.top_left_cell = (
+                                        app.top_left_cell[0] + 1,
+                                        app.top_left_cell[1],
+                                    )
                                 break
-                        elif keypress == b'D':
-                            #Left
+                        elif keypress == b"D":
+                            # Left
                             if app.current_cell[0] == 0:
                                 continue
                             else:
-                                app.current_cell = (app.spreadsheet.cells[app.current_cell].master.position[0] - 1, app.current_cell[1])    
+                                app.current_cell = (
+                                    app.spreadsheet.cells[
+                                        app.current_cell
+                                    ].master.position[0]
+                                    - 1,
+                                    app.current_cell[1],
+                                )
                                 if app.current_cell[0] < app.top_left_cell[0]:
-                                    app.top_left_cell = (app.top_left_cell[0] - 1, app.top_left_cell[1])
+                                    app.top_left_cell = (
+                                        app.top_left_cell[0] - 1,
+                                        app.top_left_cell[1],
+                                    )
                                 break
                         else:
                             continue
                     elif app.context == "Edt":
-                        if keypress == b'A':
-                            #Up
+                        if keypress == b"A":
+                            # Up
                             app.minibuffer_insert = 0
                             break
-                        elif keypress == b'B':
-                            #Down
+                        elif keypress == b"B":
+                            # Down
                             app.minibuffer_insert = len(app.minibuffer)
                             break
-                        elif keypress == b'C':
-                            #Right
-                            app.minibuffer_insert = app.minibuffer_insert if app.minibuffer_insert == len(app.minibuffer) else app.minibuffer_insert + 1 
+                        elif keypress == b"C":
+                            # Right
+                            app.minibuffer_insert = (
+                                app.minibuffer_insert
+                                if app.minibuffer_insert == len(app.minibuffer)
+                                else app.minibuffer_insert + 1
+                            )
                             break
-                        elif keypress == b'D':
-                            #Left
-                            app.minibuffer_insert = 0 if app.minibuffer_insert == 0 else app.minibuffer_insert - 1 
+                        elif keypress == b"D":
+                            # Left
+                            app.minibuffer_insert = (
+                                0
+                                if app.minibuffer_insert == 0
+                                else app.minibuffer_insert - 1
+                            )
                             break
                         else:
                             continue
-                        
-                        
+
         if app.leave:
-            print()
-            print("|" + "".join(app.spreadsheet.cells[app.current_cell[0], app.current_cell[1] - 1].content) + "|")
             break
-        
+
         app.display_UI()
-        #print(app.get_cell_is_on_screen(app.current_cell), end="")
+        # print(app.get_cell_is_on_screen(app.current_cell), end="")
 
 test = """
 EDT| B  |   C  |    D     |     E     |   F   |    G   |    H   |

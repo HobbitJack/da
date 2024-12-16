@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import typing
 import mpmath
 
@@ -9,7 +10,7 @@ class DAOS:
         self.item_stack: typing.Any = []
         self.current_item = ""
 
-        self.variables = {"E": mpmath.e, "PI": mpmath.pi, "i": mpmath.mpc("0","1")}
+        self.variables = {"E": mpmath.e, "PI": mpmath.pi, "i": mpmath.mpc("0", "1")}
         self.operation_arguments = {
             "=": 0,
             "+": 2,
@@ -25,7 +26,7 @@ class DAOS:
             "!": 1,
             "NEG": 1,
             "_": 1,
-            "*i": 1
+            "*i": 1,
         }
         self.operation_priorities = {
             "=": 6,
@@ -58,22 +59,22 @@ class DAOS:
             return -1 * arguments[0]
 
         elif operation == "!":
-            return (not arguments[0])
+            return not arguments[0]
 
         elif operation == ">":
-            return (arguments[0] > arguments[1])
-        
+            return arguments[0] > arguments[1]
+
         elif operation == "<":
-            return (arguments[0] < arguments[1])
+            return arguments[0] < arguments[1]
 
         elif operation == ">=":
-            return (arguments[0] >= arguments[1])
-        
+            return arguments[0] >= arguments[1]
+
         elif operation == "<=":
-            return (arguments[0] <= arguments[1])
+            return arguments[0] <= arguments[1]
 
         elif operation == "==":
-            return (arguments[0] == arguments[1])
+            return arguments[0] == arguments[1]
 
         elif operation == "+":
             return arguments[0] + arguments[1]
@@ -116,12 +117,23 @@ class DAOS:
                     self.operation_stack.append("NEG")
                     continue
 
-            if character == "i" or character == "j" or character == "I" or character == "J":
-                if self.current_item == "" or self.current_item.isnumeric() or self.current_item in self.variables:
+            if (
+                character == "i"
+                or character == "j"
+                or character == "I"
+                or character == "J"
+            ):
+                if (
+                    self.current_item == ""
+                    or self.current_item.isnumeric()
+                    or self.current_item in self.variables
+                ):
                     if self.current_item != "":
                         character = "*i"
                     else:
-                        if (index == len(expression) - 1) or (not expression[index + 1].isalnum()):
+                        if (index == len(expression) - 1) or (
+                            not expression[index + 1].isalnum()
+                        ):
                             self.item_stack.append(self.variables["i"])
                             continue
                 else:
@@ -130,14 +142,22 @@ class DAOS:
                     continue
 
             if index > 0:
-                if character == "=" and (expression[index - 1] == ">" or expression[index - 1] == "<" or expression[index - 1] == "="):
+                if character == "=" and (
+                    expression[index - 1] == ">"
+                    or expression[index - 1] == "<"
+                    or expression[index - 1] == "="
+                ):
                     continue
-            
-            if character == "=" and index != len(expression)-1 and expression[index + 1] == "=":
+
+            if (
+                character == "="
+                and index != len(expression) - 1
+                and expression[index + 1] == "="
+            ):
                 character = "=="
 
             if character == ">" or character == "<":
-                if index != len(expression)-1 and expression[index + 1] == "=":
+                if index != len(expression) - 1 and expression[index + 1] == "=":
                     character += "="
 
             if character in self.operation_arguments:
@@ -182,7 +202,9 @@ class DAOS:
         ]
         for _ in arguments:
             self.item_stack.pop()
-        self.item_stack.append(self.evaluate_operation(arguments, self.operation_stack[-1]))
+        self.item_stack.append(
+            self.evaluate_operation(arguments, self.operation_stack[-1])
+        )
         self.operation_stack.pop()
         return
 
